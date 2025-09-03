@@ -16,7 +16,7 @@ variable "default_tags" {
   default     = {}
 }
 
-variable "high_availability" {
+variable "one_nat_gateway_per_az" {
   description = "Enable high availability for NAT gateways"
   type        = bool
   default     = false
@@ -54,7 +54,8 @@ variable "vpc_tags" {
 variable "public_subnets" {
   description = "A list of public subnet names"
   type = list(object({
-    cidr = string
+    cidr        = string
+    prefix_name = string # e.g., "public" or "ingress"
   }))
 
 }
@@ -62,9 +63,65 @@ variable "public_subnets" {
 variable "private_subnets" {
   description = "A list of private subnet names"
   type = list(object({
-    cidr = string
-    type = string # e.g., "private" or "pod"
+    cidr        = string
+    prefix_name = string # e.g., "private" or "pod"
   }))
 
+}
+
+variable "database_subnets" {
+  description = "A list of private subnet names"
+  type = list(object({
+    cidr        = string
+    prefix_name = string # e.g., "private" or "pod"
+  }))
+  default = []
+
+}
+
+
+variable "database_nacl_network_rules" {
+  description = "List of network ACL rules for the database subnets"
+  type = map(object({
+    rule_number = number
+    protocol    = string
+    rule_action = string
+    egress      = optional(bool)
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+
+  }))
+  default = {}
+}
+
+variable "private_nacl_network_rules" {
+  description = "List of network ACL rules for the database subnets"
+  type = map(object({
+    rule_number = number
+    protocol    = string
+    rule_action = string
+    egress      = optional(bool)
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+
+  }))
+  default = {}
+}
+
+variable "public_nacl_network_rules" {
+  description = "List of network ACL rules for the database subnets"
+  type = map(object({
+    rule_number = number
+    protocol    = string
+    rule_action = string
+    cidr_block  = string
+    from_port   = number
+    to_port     = number
+    egress      = optional(bool)
+
+  }))
+  default = {}
 }
 

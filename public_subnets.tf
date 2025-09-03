@@ -12,7 +12,8 @@ resource "aws_subnet" "public" {
     var.default_tags,
     var.vpc_tags,
     {
-      Name = "${var.project_name}-public-subnet-${split("-", local.target_availability_zones[each.key % length(local.target_availability_zones)])[2]}"
+      Name = "${var.project_name}-${each.value.prefix_name}-subnet-${split("-", local.target_availability_zones[each.key % length(local.target_availability_zones)])[2]}"
+
     }
   )
   depends_on = [aws_vpc_ipv4_cidr_block_association.main]
@@ -48,4 +49,38 @@ resource "aws_route_table_association" "public" {
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
+}
+
+resource "aws_network_acl" "public" {
+  vpc_id = aws_vpc.main.id
+
+  tags = merge(
+    var.default_tags,
+    var.vpc_tags,
+    {
+      Name = "${var.project_name}-public-nacl"
+  })
+}
+
+
+resource "aws_network_acl_rule" "public_inbound" {
+
+  for_each       = var.public_nacl_network_rules
+  network_acl_id = aws_network_acl.public.id
+  rule_number    = each.value.rule_number
+  egress         = each.value.egress != null ? each.value.egress : false
+  protocol       = each.value.protocol
+  rule_action    = each.value.rule_action
+  cidr_block     = each.value.cidr_block == null ? aws_vpc.main.cidr_block : each.value.cidr_block
+  from_port      = each.value.from_port
+  to_port        = each.value.to_port
+
+}
+
+resource "aws_network_acl_association" "public" {
+  for_each = aws_subnet.public
+
+  subnet_id      = each.value.id
+  network_acl_id = aws_network_acl.public.id
+
 }
