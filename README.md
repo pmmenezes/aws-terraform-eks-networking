@@ -20,5 +20,7 @@ export VPC_ID=$(jq -r '.values.root_module.resources[] | select(.type=="aws_vpc"
 #### Extras
 
 [split Function](https://developer.hashicorp.com/terraform/language/functions/split)
+
 [Element Function](https://developer.hashicorp.com/terraform/language/functions/element)
+
 [For Expressions](https://developer.hashicorp.com/terraform/language/expressions/for)
